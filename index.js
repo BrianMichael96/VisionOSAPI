@@ -1,8 +1,9 @@
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const { MongoClient } = require('mongodb');
 const app = express();
-const port = process.env.PORT;
+const port = process.env.PORT || 3000;
 
 // Aumentar o limite de tamanho do corpo da solicitação
 app.use(bodyParser.json({ limit: '50mb' }));

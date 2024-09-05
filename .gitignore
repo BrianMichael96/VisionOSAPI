@@ -1,0 +1,8 @@
+# Ignorar a pasta node_modules (pacotes instalados do npm)
+node_modules/
+
+# Ignorar o arquivo de variáveis de ambiente .env
+.env
+
+# Ignorar outros arquivos desnecessários, se houver (opcional)
+*.log
