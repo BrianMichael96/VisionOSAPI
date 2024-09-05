@@ -15,7 +15,7 @@ const dbName = 'loginDB';
 let db;
 
 // Conectar ao MongoDB
-MongoClient.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true, tls: true, tlsAllowInvalidCertificates: true })
+MongoClient.connect(mongoURI)
     .then(client => {
         db = client.db(dbName);
         console.log("Successfully connected to the database");
