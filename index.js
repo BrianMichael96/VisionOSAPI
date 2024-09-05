@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const { MongoClient, ServerApiVersion } = require('mongodb');
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT;
 
 // Aumentar o limite de tamanho do corpo da solicitação
 app.use(bodyParser.json({ limit: '50mb' }));
