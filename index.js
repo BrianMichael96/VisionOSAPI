@@ -10,12 +10,16 @@ app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 // Use a string de conexão do MongoDB Atlas armazenada em uma variável de ambiente
-const mongoURI = process.env.MONGO_URI;
+const mongoURI = process.env.MONGO_URI || 'mongodb+srv://Brian:solange09@clustervisionos.7xnel.mongodb.net/loginDB?retryWrites=true&w=majority&appName=ClusterVisionOS';
 const dbName = 'loginDB';
 let db;
 
 // Conectar ao MongoDB
-MongoClient.connect(mongoURI)
+MongoClient.connect(mongoURI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    tlsInsecure: true  // Força o TLS 1.2 e ignora problemas de certificado
+})
     .then(client => {
         db = client.db(dbName);
         console.log("Successfully connected to the database");
