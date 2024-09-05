@@ -8,12 +8,13 @@ const port = 3000;
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
-const url = 'mongodb://localhost:27017';
+// Use a string de conexão do MongoDB Atlas armazenada em uma variável de ambiente
+const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017';
 const dbName = 'loginDB';
 let db;
 
 // Conectar ao MongoDB
-MongoClient.connect(url)
+MongoClient.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(client => {
         db = client.db(dbName);
         console.log("Successfully connected to the database");
