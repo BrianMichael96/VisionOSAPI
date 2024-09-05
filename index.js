@@ -38,7 +38,7 @@ async function connectToDatabase() {
         
         // Iniciar o servidor após a conexão com o banco de dados
         app.listen(port, () => {
-            console.log(`Server running on http://localhost:${port}`);
+            console.log(`Server running on port ${port}`);
         });
     } catch (error) {
         console.error('Failed to connect to the database. Exiting now...', error);
