@@ -1,7 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
-const { MongoClient } = require('mongodb');
+const { MongoClient, ServerApiVersion } = require('mongodb');
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -10,29 +11,41 @@ app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 // Use a string de conexão do MongoDB Atlas armazenada em uma variável de ambiente
-const mongoURI = process.env.MONGO_URI || 'mongodb+srv://Brian:solange09@clustervisionos.7xnel.mongodb.net/loginDB?retryWrites=true&w=majority&appName=ClusterVisionOS';
+const mongoURI = process.env.MONGO_URI; // Definido na variável de ambiente
 const dbName = 'loginDB';
 let db;
 
-// Conectar ao MongoDB
-MongoClient.connect(mongoURI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    tlsInsecure: true  // Força o TLS 1.2 e ignora problemas de certificado
-})
-    .then(client => {
-        db = client.db(dbName);
-        console.log("Successfully connected to the database");
+// Criação do MongoClient com as opções da Stable API
+const client = new MongoClient(mongoURI, {
+    serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+    }
+});
 
+async function connectToDatabase() {
+    try {
+        // Conectar o cliente ao servidor
+        await client.connect();
+        // Enviar um ping para confirmar uma conexão bem-sucedida
+        await client.db("admin").command({ ping: 1 });
+        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+
+        // Inicializar o banco de dados após a conexão
+        db = client.db(dbName);
+        
         // Iniciar o servidor após a conexão com o banco de dados
         app.listen(port, () => {
             console.log(`Server running on http://localhost:${port}`);
         });
-    })
-    .catch(err => {
-        console.error('Failed to connect to the database. Exiting now...', err);
-        process.exit();
-    });
+    } catch (error) {
+        console.error('Failed to connect to the database. Exiting now...', error);
+        process.exit(1);
+    }
+}
+
+connectToDatabase();
 
 // Endpoint para salvar/atualizar o estado de login e dados do usuário
 app.post('/saveUserInformation', async (req, res) => {
