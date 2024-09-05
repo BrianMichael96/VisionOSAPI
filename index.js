@@ -4,11 +4,11 @@ const bodyParser = require('body-parser');
 const { MongoClient, ServerApiVersion } = require('mongodb');
 
 const app = express();
-const port = process.env.PORT;
+const port = process.env.PORT || 8080;
 
 // Aumentar o limite de tamanho do corpo da solicitação
-app.use(bodyParser.json({ limit: '50mb' }));
-app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
 // Use a string de conexão do MongoDB Atlas armazenada em uma variável de ambiente
 const mongoURI = process.env.MONGO_URI; // Definido na variável de ambiente
@@ -29,7 +29,6 @@ async function connectToDatabase() {
     try {
         // Conectar o cliente ao servidor
         await client.connect();
-        // Enviar um ping para confirmar uma conexão bem-sucedida
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
