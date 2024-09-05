@@ -9,7 +9,7 @@ app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 // Use a string de conexão do MongoDB Atlas armazenada em uma variável de ambiente
-const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017';
+const mongoURI = process.env.MONGO_URI;
 const dbName = 'loginDB';
 let db;
 
