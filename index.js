@@ -48,15 +48,36 @@ async function connectToDatabase() {
 connectToDatabase();
 
 // Endpoint para salvar/atualizar o estado de login e dados do usuário
+// Endpoint para salvar/atualizar o estado de login e dados do usuário
 app.post('/saveUserInformation', async (req, res) => {
-    const userInfo = req.body;
+    const { userId, profile, contractPicture, ...otherInfo } = req.body;
 
     try {
         const collection = db.collection('userInformation');
+        
+        // Criar um objeto para definir os campos a serem atualizados
+        const updateFields = { ...otherInfo };
+        if (profile !== undefined) {
+            updateFields.profile = profile;
+        } else {
+            updateFields.profile = null; // Remove o campo se o valor for indefinido
+        }
+
+        if (contractPicture !== undefined) {
+            updateFields.contractPicture = contractPicture;
+        } else {
+            updateFields.contractPicture = null; // Remove o campo se o valor for indefinido
+        }
+
+        // Atualizar ou inserir o documento correspondente ao userId
         await collection.updateOne(
-            {}, // Sem filtro específico para garantir que só haverá um documento
-            { $set: userInfo }, // Atualizar ou inserir dados
-            { upsert: true }
+            { userId }, // Critério de busca pelo userId
+            { 
+                $set: updateFields, 
+                $unset: profile === undefined ? { profile: "" } : {},
+                $unset: contractPicture === undefined ? { contractPicture: "" } : {}
+            },
+            { upsert: true } // Cria o documento se não existir
         );
         res.send({ success: true });
     } catch (error) {
@@ -65,15 +86,17 @@ app.post('/saveUserInformation', async (req, res) => {
     }
 });
 
+
+
 // Endpoint para obter as informações do usuário
 app.get('/getUserInformation', async (req, res) => {
     try {
         const collection = db.collection('userInformation');
-        const userInfo = await collection.findOne({});
-        if (userInfo) {
-            res.send(userInfo);
+        const users = await collection.find({}).toArray(); // Encontrar todos os usuários
+        if (users.length > 0) {
+            res.send(users); // Retornar a lista de usuários
         } else {
-            res.status(404).send({ success: false, message: 'User not found' });
+            res.status(404).send({ success: false, message: 'No users found' });
         }
     } catch (error) {
         console.error('Error fetching user information:', error);
