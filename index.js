@@ -156,23 +156,24 @@ app.patch('/updateUserInformation/:userAlias', async (req, res) => {
     }
 });
 
-app.patch('/updateUserInformation/:userAlias', async (req, res) => {
-    const userAlias = req.params.userAlias; // Usamos o userAlias como identificador
-    const updates = req.body; // Novos dados enviados na requisição
+app.patch('/saveOrUpdateUserInformation/:userAlias', async (req, res) => {
+    const userAlias = req.params.userAlias;
+    const userInfo = req.body;
 
     try {
         const collection = db.collection('userInformation');
 
-        // Usar $set para atualizar apenas os campos fornecidos
+        // Usar `upsert: true` para inserir ou atualizar o documento
         await collection.updateOne(
-            { userAlias: userAlias }, // Encontrar o usuário pelo userAlias
-            { $set: updates } // Atualizar os campos fornecidos no corpo da requisição
+            { userAlias: userAlias },  // Encontrar o documento pelo userAlias
+            { $set: userInfo },        // Atualizar os campos fornecidos
+            { upsert: true }           // Inserir se não existir
         );
 
-        res.send({ success: true });
+        res.send({ success: true, message: "User information updated or inserted" });
     } catch (error) {
-        console.error('Error updating user information:', error);
-        res.status(500).send({ success: false });
+        console.error('Error saving or updating user information:', error);
+        res.status(500).send({ success: false, message: 'Internal Server Error' });
     }
 });
 
