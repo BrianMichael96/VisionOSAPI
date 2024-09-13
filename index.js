@@ -47,20 +47,6 @@ async function connectToDatabase() {
 
 connectToDatabase();
 
-// Endpoint para salvar/atualizar o estado de login e dados do usuário
-app.post('/saveUserInformation', async (req, res) => {
-    const userInfo = req.body;
-
-    try {
-        const collection = db.collection('userInformation');
-        await collection.insertOne(userInfo); // Inserir um novo usuário na coleção
-        res.send({ success: true });
-    } catch (error) {
-        console.error('Error saving user information:', error);
-        res.status(500).send({ success: false });
-    }
-});
-
 
 // Endpoint para obter as informações do usuário
 app.get('/getUserInformation', async (req, res) => {
@@ -90,35 +76,6 @@ app.delete('/clearUsers', async (req, res) => {
     }
 });
 
-// Endpoint para listar todos os usuários (apenas um neste caso)
-app.get('/listUsers', async (req, res) => {
-    try {
-        const collection = db.collection('userInformation');
-        const users = await collection.find({}).toArray();
-        res.send(users);
-    } catch (error) {
-        console.error('Error listing users:', error);
-        res.status(500).send({ success: false });
-    }
-});
-
-// Endpoint para atualizar um campo específico
-app.patch('/updateUserField', async (req, res) => {
-    const { fieldName, fieldValue } = req.body;
-
-    try {
-        const collection = db.collection('userInformation');
-        await collection.updateOne(
-            {},
-            { $set: { [fieldName]: fieldValue } }
-        );
-        res.send({ success: true });
-    } catch (error) {
-        console.error('Error updating user field:', error);
-        res.status(500).send({ success: false });
-    }
-});
-
 // Endpoint para atualizar o PIN do usuário
 app.patch('/updateUserPin', async (req, res) => {
     const { pin } = req.body;
@@ -136,44 +93,62 @@ app.patch('/updateUserPin', async (req, res) => {
     }
 });
 
-app.patch('/updateUserInformation/:userAlias', async (req, res) => {
-    const userAlias = req.params.userAlias; // Usamos o userAlias como identificador
-    const updates = req.body; // Novos dados enviados na requisição
+
+
+app.patch('/saveOrUpdateUserInformation/:userAlias', async (req, res) => {
+    const userAlias = req.params.userAlias;
+    const { contractPicture, pin, ...userInfo } = req.body;  // Extraímos contractPicture e pin
 
     try {
         const collection = db.collection('userInformation');
 
-        // Usar $set para atualizar apenas os campos fornecidos
+        // Atualiza os campos de userInfo (exceto contractPicture)
+        const updateFields = { ...userInfo, pin }; // Garante que o pin sempre será atualizado ou mantido
+        const unsetFields = {};  // Campos a serem removidos, como contractPicture
+
+        // Se contractPicture for null ou undefined, removemos o campo
+        if (contractPicture === null || contractPicture === undefined) {
+            unsetFields.contractPicture = ""; // Remove o campo contractPicture
+        } else {
+            updateFields.contractPicture = contractPicture; // Atualiza contractPicture se houver valor
+        }
+
+        // Atualiza o documento, removendo contractPicture (se necessário) e atualizando pin
         await collection.updateOne(
-            { userAlias: userAlias }, // Encontrar o usuário pelo userAlias
-            { $set: updates } // Atualizar os campos fornecidos no corpo da requisição
+            { userAlias: userAlias },
+            {
+                $set: updateFields,   // Atualiza os campos, incluindo o pin
+                $unset: unsetFields   // Remove contractPicture se for null ou undefined
+            },
+            { upsert: true } // Insere o documento se ele não existir
         );
 
         res.send({ success: true });
     } catch (error) {
-        console.error('Error updating user information:', error);
+        console.error('Error saving or updating user information:', error);
         res.status(500).send({ success: false });
     }
 });
 
-app.patch('/saveOrUpdateUserInformation/:userAlias', async (req, res) => {
-    const userAlias = req.params.userAlias;
-    const userInfo = req.body;
+app.get('/checkUser/:userAlias', async (req, res) => {
+    const userAlias = req.params.userAlias;  // Pega o userAlias da URL
 
     try {
         const collection = db.collection('userInformation');
+        const user = await collection.findOne({ userAlias: userAlias });  // Busca o usuário pelo userAlias
 
-        // Usar `upsert: true` para inserir ou atualizar o documento
-        await collection.updateOne(
-            { userAlias: userAlias },  // Encontrar o documento pelo userAlias
-            { $set: userInfo },        // Atualizar os campos fornecidos
-            { upsert: true }           // Inserir se não existir
-        );
-
-        res.send({ success: true, message: "User information updated or inserted" });
+        if (user) {
+            // Se o usuário for encontrado, retorna os dados
+            res.send({ success: true, user });
+        } else {
+            // Se o usuário não for encontrado, retorna uma mensagem
+            res.status(404).send({ success: false, message: 'User not found' });
+        }
     } catch (error) {
-        console.error('Error saving or updating user information:', error);
+        console.error('Error checking user:', error);
         res.status(500).send({ success: false, message: 'Internal Server Error' });
     }
 });
+
+
 
