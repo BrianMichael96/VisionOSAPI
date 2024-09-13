@@ -80,28 +80,19 @@ app.patch('/updateUserPin', async (req, res) => {
 
 app.patch('/saveOrUpdateUserInformation/:userAlias', async (req, res) => {
     const userAlias = req.params.userAlias;
-    const { contractPicture, ...userInfo } = req.body;  // Extraímos contractPicture, ignorando pin
+    const { contractPicture, ...userInfo } = req.body;  // Extrai contractPicture, mantendo os outros campos
 
     try {
         const collection = db.collection('userInformation');
 
-        // Não inclui o pin no updateFields, para não ser atualizado
-        const updateFields = { ...userInfo }; 
-        const unsetFields = {};  // Campos a serem removidos, como contractPicture
+        // Incluímos contractPicture em updateFields, independentemente do valor ser null, undefined ou válido
+        const updateFields = { ...userInfo, contractPicture };
 
-        // Se contractPicture for null ou undefined, removemos o campo
-        if (contractPicture === null || contractPicture === undefined) {
-            unsetFields.contractPicture = ""; // Remove o campo contractPicture
-        } else {
-            updateFields.contractPicture = contractPicture; // Atualiza contractPicture se houver valor
-        }
-
-        // Atualiza o documento, removendo contractPicture (se necessário) e atualizando os outros campos
+        // Faz a atualização no MongoDB
         await collection.updateOne(
             { userAlias: userAlias },
             {
-                $set: updateFields,   // Atualiza os campos, exceto pin
-                $unset: unsetFields   // Remove contractPicture se for null ou undefined
+                $set: updateFields,   // Atualiza os campos, incluindo contractPicture
             },
             { upsert: true } // Insere o documento se ele não existir
         );
