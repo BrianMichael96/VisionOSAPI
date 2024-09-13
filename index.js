@@ -80,13 +80,13 @@ app.patch('/updateUserPin', async (req, res) => {
 
 app.patch('/saveOrUpdateUserInformation/:userAlias', async (req, res) => {
     const userAlias = req.params.userAlias;
-    const { contractPicture, pin, ...userInfo } = req.body;  // Extraímos contractPicture e pin
+    const { contractPicture, ...userInfo } = req.body;  // Extraímos contractPicture, ignorando pin
 
     try {
         const collection = db.collection('userInformation');
 
-        // Atualiza os campos de userInfo (exceto contractPicture)
-        const updateFields = { ...userInfo, pin }; // Garante que o pin sempre será atualizado ou mantido
+        // Não inclui o pin no updateFields, para não ser atualizado
+        const updateFields = { ...userInfo }; 
         const unsetFields = {};  // Campos a serem removidos, como contractPicture
 
         // Se contractPicture for null ou undefined, removemos o campo
@@ -96,11 +96,11 @@ app.patch('/saveOrUpdateUserInformation/:userAlias', async (req, res) => {
             updateFields.contractPicture = contractPicture; // Atualiza contractPicture se houver valor
         }
 
-        // Atualiza o documento, removendo contractPicture (se necessário) e atualizando pin
+        // Atualiza o documento, removendo contractPicture (se necessário) e atualizando os outros campos
         await collection.updateOne(
             { userAlias: userAlias },
             {
-                $set: updateFields,   // Atualiza os campos, incluindo o pin
+                $set: updateFields,   // Atualiza os campos, exceto pin
                 $unset: unsetFields   // Remove contractPicture se for null ou undefined
             },
             { upsert: true } // Insere o documento se ele não existir
@@ -112,6 +112,7 @@ app.patch('/saveOrUpdateUserInformation/:userAlias', async (req, res) => {
         res.status(500).send({ success: false });
     }
 });
+
 
 app.get('/checkUser/:userAlias', async (req, res) => {
     const userAlias = req.params.userAlias;  // Pega o userAlias da URL
