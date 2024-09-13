@@ -47,23 +47,6 @@ async function connectToDatabase() {
 
 connectToDatabase();
 
-
-// Endpoint para obter as informações do usuário
-app.get('/getUserInformation', async (req, res) => {
-    try {
-        const collection = db.collection('userInformation');
-        const users = await collection.find({}).toArray(); // Encontrar todos os usuários
-        if (users.length > 0) {
-            res.send(users); // Retornar a lista de usuários
-        } else {
-            res.status(404).send({ success: false, message: 'No users found' });
-        }
-    } catch (error) {
-        console.error('Error fetching user information:', error);
-        res.status(500).send({ success: false });
-    }
-});
-
 // Endpoint para limpar a coleção de usuários
 app.delete('/clearUsers', async (req, res) => {
     try {
@@ -151,4 +134,14 @@ app.get('/checkUser/:userAlias', async (req, res) => {
 });
 
 
-
+// Endpoint para listar todos os usuários (apenas um neste caso)
+app.get('/listUsers', async (req, res) => {
+    try {
+        const collection = db.collection('userInformation');
+        const users = await collection.find({}).toArray();
+        res.send(users);
+    } catch (error) {
+        console.error('Error listing users:', error);
+        res.status(500).send({ success: false });
+    }
+});
