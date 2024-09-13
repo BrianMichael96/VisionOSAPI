@@ -48,44 +48,18 @@ async function connectToDatabase() {
 connectToDatabase();
 
 // Endpoint para salvar/atualizar o estado de login e dados do usuário
-// Endpoint para salvar/atualizar o estado de login e dados do usuário
 app.post('/saveUserInformation', async (req, res) => {
-    const { userId, profile, contractPicture, ...otherInfo } = req.body;
+    const userInfo = req.body;
 
     try {
         const collection = db.collection('userInformation');
-        
-        // Criar um objeto para definir os campos a serem atualizados
-        const updateFields = { ...otherInfo };
-        if (profile !== undefined) {
-            updateFields.profile = profile;
-        } else {
-            updateFields.profile = null; // Remove o campo se o valor for indefinido
-        }
-
-        if (contractPicture !== undefined) {
-            updateFields.contractPicture = contractPicture;
-        } else {
-            updateFields.contractPicture = null; // Remove o campo se o valor for indefinido
-        }
-
-        // Atualizar ou inserir o documento correspondente ao userId
-        await collection.updateOne(
-            { userId }, // Critério de busca pelo userId
-            { 
-                $set: updateFields, 
-                $unset: profile === undefined ? { profile: "" } : {},
-                $unset: contractPicture === undefined ? { contractPicture: "" } : {}
-            },
-            { upsert: true } // Cria o documento se não existir
-        );
+        await collection.insertOne(userInfo); // Inserir um novo usuário na coleção
         res.send({ success: true });
     } catch (error) {
         console.error('Error saving user information:', error);
         res.status(500).send({ success: false });
     }
 });
-
 
 
 // Endpoint para obter as informações do usuário
