@@ -135,3 +135,44 @@ app.patch('/updateUserPin', async (req, res) => {
         res.status(500).send({ success: false });
     }
 });
+
+app.patch('/updateUserInformation/:userAlias', async (req, res) => {
+    const userAlias = req.params.userAlias; // Usamos o userAlias como identificador
+    const updates = req.body; // Novos dados enviados na requisição
+
+    try {
+        const collection = db.collection('userInformation');
+
+        // Usar $set para atualizar apenas os campos fornecidos
+        await collection.updateOne(
+            { userAlias: userAlias }, // Encontrar o usuário pelo userAlias
+            { $set: updates } // Atualizar os campos fornecidos no corpo da requisição
+        );
+
+        res.send({ success: true });
+    } catch (error) {
+        console.error('Error updating user information:', error);
+        res.status(500).send({ success: false });
+    }
+});
+
+app.patch('/updateUserInformation/:userAlias', async (req, res) => {
+    const userAlias = req.params.userAlias; // Usamos o userAlias como identificador
+    const updates = req.body; // Novos dados enviados na requisição
+
+    try {
+        const collection = db.collection('userInformation');
+
+        // Usar $set para atualizar apenas os campos fornecidos
+        await collection.updateOne(
+            { userAlias: userAlias }, // Encontrar o usuário pelo userAlias
+            { $set: updates } // Atualizar os campos fornecidos no corpo da requisição
+        );
+
+        res.send({ success: true });
+    } catch (error) {
+        console.error('Error updating user information:', error);
+        res.status(500).send({ success: false });
+    }
+});
+
